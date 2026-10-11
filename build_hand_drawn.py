@@ -34,8 +34,7 @@ ENGLISH={
  'T':{'outer':[(11,12),(60,11),(91,10),(91,28),(60,28),(59,81),(71,81),(71,89),(35,89),(35,82),(42,82),(43,30),(10,30)],'facet':[(60,11),(91,10),(91,28),(60,28)]},
 }
 # Finished glyph contours. Each outer silhouette is drafted as one continuous
-# polygon; the remaining contours are counters or intentional detached dots.
-# No rectangles are assembled to make the visible letters.
+# polygon; remaining contours are counters or separate radical shapes.
 ZH_CONTOURS={
  '来':[
   [(44,94),(43,70),(18,90),(10,84),(35,59),(9,61),(7,49),(43,45),(43,25),(13,28),(10,16),(42,12),(42,9),(55,7),(56,12),(88,12),(91,22),(56,24),(56,44),(90,46),(92,58),(65,58),(91,83),(87,90),(57,69),(58,91)],
@@ -52,7 +51,6 @@ ZH_CONTOURS={
   [(14,99),(13,88),(44,84),(29,83),(27,74),(45,73),(44,69),(30,69),(29,61),(44,60),(44,52),(17,51),(17,10),(50,2),(82,8),(84,51),(58,53),(58,60),(77,59),(79,69),(58,69),(58,74),(79,73),(81,83),(58,84),(58,85),(88,87),(89,99)],
   [(29,17),(50,14),(71,16),(71,26),(29,26)],
   [(28,34),(71,34),(71,43),(29,44)],
-  [(23,53),(29,55),(21,68),(15,65)],
  ],
  '的':[
   [(12,92),(11,27),(25,22),(29,9),(38,9),(35,21),(58,20),(61,25),(60,93)],
@@ -63,14 +61,22 @@ ZH_CONTOURS={
  ],
  '弦':[
   [(46,92),(35,93),(28,88),(30,82),(38,85),(41,73),(9,73),(8,43),(12,38),(40,37),(41,24),(14,24),(10,14),(29,10),(47,11),(52,18),(49,41),(46,47),(20,48),(20,62),(47,62),(53,68)],
-  [(72,3),(79,2),(85,17),(79,20)],
   [(64,86),(59,77),(70,62),(58,62),(52,54),(69,35),(55,36),(53,25),(98,23),(101,35),(80,35),(71,51),(82,52),(89,59),(76,73),(94,72),(95,82)],
-  [(93,87),(99,85),(107,97),(101,102)],
  ],
  '乐':[
   [(51,96),(45,90),(51,81),(51,56),(24,58),(17,53),(24,22),(29,17),(68,6),(72,14),(34,27),(31,44),(51,43),(51,32),(65,30),(65,43),(88,44),(90,56),(65,56),(65,89)],
   [(88,88),(74,73),(80,65),(94,82)],
   [(20,88),(14,84),(26,67),(34,71)],
+ ],
+}
+ZH_OVERLAYS={
+ # Colored apostrophe-like polygons deliberately cross the main strokes.
+ '星':[
+  ([(30,47),(38,50),(27,70),(19,65)],'#9588cf'),
+ ],
+ '弦':[
+  ([(73,8),(80,6),(89,27),(81,31)],'#9689d0'),
+  ([(88,78),(97,76),(107,95),(100,102)],'#9588cf'),
  ],
 }
 ZH_CUTS={
@@ -196,9 +202,11 @@ def chinese_letter_svg(ch,idx):
   b=min(vertices,key=lambda p:hypot(p[0]-target_b[0],p[1]-target_b[1]))
   cut=halfplane_polygon(a,b,inside)
   facets.append(f'<path id="zh-facet-{idx+1}-{j+1}" data-cut-vertices="{a[0]},{a[1]} {b[0]},{b[1]}" d="{polygon_path(cut)}" fill="{color}" clip-path="url(#{clip})"/>')
+ overlays=''.join(f'<path id="zh-overlay-{idx+1}-{j+1}" d="{polygon_path(points)}" fill="{color}"/>'
+                  for j,(points,color) in enumerate(ZH_OVERLAYS.get(ch,[])))
  return (f'<g id="zh-letter-{idx+1}" data-letter="{ch}">'
          f'<defs><clipPath id="{clip}" clipPathUnits="userSpaceOnUse"><path d="{silhouette}" clip-rule="evenodd"/></clipPath></defs>'
-         f'<g filter="url(#unified-outline)"><path id="zh-silhouette-{idx+1}" d="{silhouette}" fill="#4d63ad" fill-rule="evenodd"/>{"".join(facets)}</g></g>')
+         f'<g filter="url(#unified-outline)"><path id="zh-silhouette-{idx+1}" d="{silhouette}" fill="#4d63ad" fill-rule="evenodd"/>{"".join(facets)}{overlays}</g></g>')
 
 def build_chinese_title():
  rows=['来自星星','的弦乐'];title=''.join(rows);rendered=[];idx=0
